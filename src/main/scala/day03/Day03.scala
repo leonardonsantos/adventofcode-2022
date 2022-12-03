@@ -14,6 +14,16 @@ object main {
     priorities.splitAt(priorities.length / 2)
   }
 
+  def parseLine2(line: String): Seq[Int] = {
+    val priorities: Seq[Int] = line.map(c => {
+      if (c >= 'a')
+        c.toInt - 'a'.toInt + 1
+      else
+        c.toInt - 'A'.toInt + 27
+    })
+    priorities
+  }
+
   def solution1(tuple: (Seq[Int], Seq[Int])): Int = {
     val (a,b) = tuple
     a.toSet.intersect(b.toSet).head
@@ -37,6 +47,19 @@ object main {
       .reduce(_+_)
 
     println("Result1 = " + result1)
+
+    val result2 = textRdd
+      .zipWithIndex
+      .map{case (row, i) => (i / 3, parseLine2(row))}
+      .groupByKey
+      .mapValues(xs => {
+        val s = xs.toSeq
+        s(0).toSet.intersect(s(1).toSet.intersect(s(2).toSet)).head
+      })
+      .values
+      .reduce((_+_))
+
+    println("Result2 = " + result2)
 
   }
 }
