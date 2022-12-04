@@ -51,13 +51,11 @@ object main {
     val result2 = textRdd
       .zipWithIndex
       .map{case (row, i) => (i / 3, parseLine2(row))}
-      .groupByKey
-      .mapValues(xs => {
-        val s = xs.toSeq
-        s(0).toSet.intersect(s(1).toSet.intersect(s(2).toSet)).head
-      })
+      .mapValues(_.toSet)
+      .reduceByKey(_.intersect(_))
       .values
-      .reduce((_+_))
+      .map(_.head)
+      .reduce(_+_)
 
     println("Result2 = " + result2)
 
