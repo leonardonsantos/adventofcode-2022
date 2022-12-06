@@ -5,11 +5,18 @@ import scala.collection.mutable.Queue
 
 object main {
   def isAllDiff(buffer: Queue[Char], diffSize: Int): Boolean = {
-    // TODO: refactor
-    buffer.toSet.size == diffSize
+    buffer.foldLeft((Set[Char](), true)) {case ((mySet, resp), c) => {
+        if (!resp || mySet.contains(c)) {
+          (mySet,false)
+        } else {
+          (mySet + c, true)
+        }
+      }}
+      ._2
   }
 
   def findMarker(stream: String, diffSize: Int): Long = {
+    // TODO: don't use mutable data structure
     val buffer = Queue[Char]()
     buffer.addAll(stream.substring(0,diffSize))
     stream
