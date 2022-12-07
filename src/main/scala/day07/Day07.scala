@@ -60,10 +60,19 @@ object main {
     dirSize
   }
 
-  def solution1(dir: Directory): Long = {
-    val acc = Accumulator(0)
-    solution1(dir,acc)
-    acc.value
+  def solution2(dir: Directory, accTotal: Accumulator, neededSpace: Long): Long = {
+    val filesSize = dir.files.foldLeft(0.toLong)((acc,x) => acc + x.size)
+    val subDirsSize = dir.subDirectories.foldLeft(0.toLong)((acc,sd) => {
+      acc + solution2(sd,accTotal, neededSpace)
+    })
+
+    val dirSize = filesSize + subDirsSize
+
+    if (dirSize>=neededSpace && dirSize<accTotal.value) {
+      accTotal.value = dirSize
+    }
+
+    dirSize
   }
 
   def main(args: Array[String]): Unit = {
@@ -73,7 +82,16 @@ object main {
     val lines = Source.fromFile(filename).getLines.toSeq
     val dir = parseInput(lines)
 
-    val result1 = solution1(dir)
+    val acc1 = Accumulator(0)
+    val sizeDir = solution1(dir, acc1)
+    val result1 = acc1.value
     println("Result1 = " + result1)
+
+    val freeSpace = 70000000 - sizeDir
+    val neededSpace = 30000000 - freeSpace
+    val acc2 = Accumulator(Long.MaxValue)
+    solution2(dir, acc2, neededSpace)
+    val result2 = acc2.value
+    println("Result2 = " + result2)
   }
 }
