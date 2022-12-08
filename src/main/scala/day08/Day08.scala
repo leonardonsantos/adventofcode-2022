@@ -21,6 +21,47 @@ object main {
     isVisibleLeft || isVisibleRight || isVisibleTop || isVisibleDown
   }
 
+  def scenicScore(i:Int, j:Int, matrix: Array[Array[Int]]): Long = {
+    val height = matrix(i)(j)
+    val treesLeft = (j-1 to 0 by -1)
+      .foldLeft((0,0)){ case ((acc,maxHeight),x) => {
+        val thisHeight = matrix(i)(x)
+        if (maxHeight>=height)
+          (acc,maxHeight)
+        else
+          (acc+1,maxHeight.max(thisHeight))
+      }}
+      ._1
+    val treesRight = (j+1 until matrix(i).length)
+      .foldLeft((0,0)){ case ((acc,maxHeight),x) => {
+        val thisHeight = matrix(i)(x)
+        if (maxHeight>=height)
+          (acc,maxHeight)
+        else
+          (acc+1,maxHeight.max(thisHeight))
+      }}
+      ._1
+    val treesTop = (i-1 to 0 by -1)
+      .foldLeft((0,0)){ case ((acc,maxHeight),x) => {
+        val thisHeight = matrix(x)(j)
+        if (maxHeight>=height)
+          (acc,maxHeight)
+        else
+          (acc+1,maxHeight.max(thisHeight))
+      }}
+      ._1
+    val treesDown = (i+1 until matrix.length)
+      .foldLeft((0,0)){ case ((acc,maxHeight),x) => {
+        val thisHeight = matrix(x)(j)
+        if (maxHeight>=height)
+          (acc,maxHeight)
+        else
+          (acc+1,maxHeight.max(thisHeight))
+      }}
+      ._1
+    treesLeft * treesRight * treesTop * treesDown
+  }
+
   def main(args: Array[String]): Unit = {
     val filename = "src/main/scala/day08/input.txt"
 
@@ -44,6 +85,11 @@ object main {
       .filter{case (i,j) => isVisible(i,j, matrixBC.value)}
       .count
     println("Result1 = " + result1)
+
+    val result2 = rddPositions
+      .map{case (i,j) => scenicScore(i,j, matrixBC.value)}
+      .reduce((a,b) => a.max(b))
+    println("Result2 = " + result2)
 
   }
 }
