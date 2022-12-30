@@ -8,5 +8,6 @@ lazy val root = (project in file("."))
   .settings(
     name := "adventofcode-2022",
     libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion,
-    libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
-)
+    libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion,
+    libraryDependencies += "org.scala-graph" %% "graph-core" % "1.13.5"
+  )
