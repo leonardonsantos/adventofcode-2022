@@ -125,6 +125,66 @@ object main {
     (matrix, graph)
   }
 
+  def parseInput2(lines: Seq[String]): (Map[(Int, Int), Char], MyGraph[(Int,Int),Int]) = {
+    val matrix = lines
+      .zipWithIndex
+      .flatMap{case (line,i)=> {
+        line
+          .zipWithIndex
+          .map{case (c,j) => ((i,j),c)}
+      }}
+      .toMap
+    val matrix2 = matrix.map{case (k,v) => if (v=='E') (k,'z') else (k,v)}
+    val nodes = matrix2.toSeq
+      .flatMap{ case ((i,j),c) => {
+        val left =
+          if (matrix2.contains((i,j-1)))
+            if (matrix2((i,j)).toInt+1 >= matrix2((i,j-1)).toInt || matrix2((i,j))=='S')
+              Some(((i,j), (i,j-1)))
+            else
+              None
+          else
+            None
+        val right =
+          if (matrix2.contains((i,j+1)))
+            if (matrix2((i,j)).toInt+1 >= matrix2((i,j+1)).toInt || matrix2((i,j))=='S')
+              Some(((i,j), (i,j+1)))
+            else
+              None
+          else
+            None
+        val up =
+          if (matrix2.contains((i-1,j)))
+            if (matrix2((i,j)).toInt+1 >= matrix2((i-1,j)).toInt || matrix2((i,j))=='S')
+              Some(((i,j), (i-1,j)))
+            else
+              None
+          else
+            None
+        val down =
+          if (matrix2.contains((i+1,j)))
+            if (matrix2((i,j)).toInt+1 >= matrix2((i+1,j)).toInt || matrix2((i,j))=='S')
+              Some(((i,j), (i+1,j)))
+            else
+              None
+          else
+            None
+        List(left, right, up, down).flatten
+      }}
+
+    val vertices = nodes.foldLeft(Map[(Int,Int),Set[((Int,Int),Int)]]()){
+      case (acc, (a,b)) => {
+        // opposite direction
+        val x = acc.getOrElse(b, Set[((Int,Int),Int)]())
+        acc ++ Map(b -> (x.incl((a,1))))
+      }
+
+    }
+    val graph = new MyGraph[(Int,Int),Int](vertices.keySet,vertices)
+
+    (matrix, graph)
+  }
+
   def findShortestPath(matrix: Map[(Int, Int), Char], graph: Graph[(Int, Int), DiEdge]): Option[graph.Path] = {
     def findValue(value: Char): (Int, Int) = matrix.find{case (k,v) => v == value}.get._1
     val posS = findValue('S')
@@ -134,13 +194,24 @@ object main {
     path
   }
 
-  def findShortestPathB(matrix: Map[(Int, Int), Char], graph: MyGraph[(Int, Int), Int]): Seq[(Int,Int)] = {
+  def findShortestPathB(matrix: Map[(Int, Int), Char], graph: MyGraph[(Int, Int), Int]) = {
     def findValue(value: Char): (Int, Int) = matrix.find{case (k,v) => v == value}.get._1
     val posS = findValue('S')
     val posE = findValue('E')
-    println(posS,posE)
     val path = graph.shortestPath(posS, posE)
-    path.get._1
+    val (dist, prev) = graph.distanceFrom(posS)
+    dist(posE)
+  }
+
+  def findShortestPath2(matrix: Map[(Int, Int), Char], graph: MyGraph[(Int, Int), Int]) = {
+    def findValues(value: Char): Seq[(Int, Int)] = matrix.toSeq.filter{case (k,v) => v == value}.map(_._1)
+    val posE = findValues('E').head
+    val posAs = findValues('a')
+
+    val (dist, prev) = graph.distanceFrom(posE)
+    posAs
+      .map(x => dist.getOrElse(x,Int.MaxValue))
+      .min
   }
 
   def main(args: Array[String]): Unit = {
@@ -150,18 +221,21 @@ object main {
     //testGraph()
 
     val lines = Source.fromFile(filename).getLines.toSeq
-    val (matrix,graph) = parseInput(lines)
 
     /*
+    val (matrix,graph) = parseInput(lines)
     val result1 = findShortestPath(matrix,graph)
     println("Result1 = " + result1.get.nodes)
     println("Result1 = " + (result1.get.nodes.size - 1))
      */
 
     val (matrixB,graphB) = parseInputB(lines)
-    val result1B = findShortestPathB(matrix,graphB)
+    val result1B = findShortestPathB(matrixB,graphB)
     println("Result1 = " + result1B)
-    println("Result1 = " + (result1B.size - 1))
+
+    val (matrix2,graph2) = parseInput2(lines)
+    val result2 = findShortestPath2(matrix2,graph2)
+    println("Result2 = " + result2)
 
   }
 }
